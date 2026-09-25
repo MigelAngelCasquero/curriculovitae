@@ -15,6 +15,170 @@ svg{position:absolute;inset:0;width:100%;height:100%;z-index:1;pointer-events:no
 .p1{left:10%;top:18%}.p2{left:30%;top:13%}.p3{left:50%;top:10%}.p4{left:70%;top:13%}.p5{left:90%;top:18%}.p6{left:10%;top:78%}.p7{left:30%;top:83%}.p8{left:50%;top:86%}.p9{left:70%;top:83%}.p10{left:90%;top:78%}
 .panel{position:fixed;z-index:50;top:0;right:0;width:min(560px,92vw);height:100%;padding:46px 42px;overflow-y:auto;background:linear-gradient(155deg,#0b1e24,#020709);border-left:1px solid rgba(157,235,241,.3);box-shadow:-30px 0 75px #000;transform:translateX(105%);transition:.38s}.panel.open{transform:translateX(0)}.close{position:absolute;right:22px;top:18px;width:40px;height:40px;border-radius:50%;border:1px solid #555;background:#18242a;color:white;font-size:22px;cursor:pointer}.pt{font-size:30px;font-weight:800;color:#a8edf3;padding:20px 35px 20px 0;border-bottom:1px solid #334}.pc{white-space:pre-line;font-size:14px;line-height:1.7;color:#e0e0e0;margin-top:24px}.contact{margin-top:28px;padding:17px;border:1px solid #334;border-radius:12px;color:#bbb;line-height:1.7}
 @media(max-width:1200px){.card{min-width:170px;height:108px;font-size:clamp(18px,1.6vw,23px)}}
+
+/* ==========================================================
+   MÓVIL REAL
+   En móvil no intentamos encoger el sobre de escritorio.
+   Se conserva el aspecto visual, pero las 10 secciones pasan
+   a una rejilla táctil de 2 columnas, legible y desplazable.
+   ========================================================== */
+@media (max-width: 700px) {
+    html, body {
+        overflow-x: hidden;
+        overflow-y: auto;
+        min-height: 100%;
+    }
+
+    body {
+        background-attachment: fixed;
+        background-position: center;
+    }
+
+    .header {
+        position: relative;
+        height: auto;
+        min-height: 0;
+        padding: 18px 16px 20px;
+        gap: 14px;
+        align-items: flex-start;
+        background: rgba(0,0,0,.78);
+    }
+
+    .foto {
+        width: 78px;
+        height: 78px;
+        flex: 0 0 78px;
+        border-radius: 12px;
+    }
+
+    .nombre {
+        font-size: 13px;
+        line-height: 1.2;
+        letter-spacing: 1.6px;
+    }
+
+    .titulo {
+        margin-top: 6px;
+        font-size: 24px;
+        line-height: .98;
+        letter-spacing: .5px;
+    }
+
+    .sub {
+        margin-top: 7px;
+        font-size: 10px;
+        line-height: 1.25;
+        letter-spacing: .8px;
+    }
+
+    .intro {
+        /* En móvil evitamos una cabecera enorme */
+        display: none;
+    }
+
+    .escena {
+        position: relative;
+        top: auto;
+        left: auto;
+        width: 100%;
+        height: auto;
+        min-height: 0;
+        padding: 18px 14px 34px;
+
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 13px;
+
+        background: rgba(0,0,0,.18);
+    }
+
+    /* Las aristas 3D solo tienen sentido con espacio horizontal.
+       En móvil desaparecen en vez de convertirse en una maraña. */
+    .escena svg {
+        display: none;
+    }
+
+    .card {
+        position: relative !important;
+        left: auto !important;
+        top: auto !important;
+        transform: none !important;
+
+        width: 100%;
+        min-width: 0;
+        max-width: none;
+        height: 112px;
+
+        padding: 12px 9px;
+        margin: 0;
+
+        font-size: 17px;
+        line-height: 1.08;
+
+        border-radius: 10px;
+        box-shadow:
+            0 12px 20px rgba(0,0,0,.48),
+            5px 6px 0 rgba(0,0,0,.22);
+    }
+
+    .card:hover,
+    .card:active {
+        transform: translateY(-2px) !important;
+    }
+
+    .panel {
+        width: 100vw;
+        height: 100dvh;
+        padding: 58px 20px 28px;
+        border-left: 0;
+    }
+
+    .pt {
+        margin-top: 0;
+        padding-top: 0;
+        font-size: 25px;
+    }
+
+    .pc {
+        font-size: 15px;
+        line-height: 1.62;
+    }
+
+    .contact {
+        font-size: 13px;
+    }
+}
+
+/* Móviles muy estrechos */
+@media (max-width: 390px) {
+    .header {
+        padding-left: 12px;
+        padding-right: 12px;
+    }
+
+    .foto {
+        width: 68px;
+        height: 68px;
+        flex-basis: 68px;
+    }
+
+    .titulo {
+        font-size: 21px;
+    }
+
+    .escena {
+        padding-left: 10px;
+        padding-right: 10px;
+        gap: 10px;
+    }
+
+    .card {
+        height: 105px;
+        font-size: 15px;
+        padding: 9px 6px;
+    }
+}
+
 </style></head><body>
 <header class="header"><img class="foto" src="miguel.png"><div><div class="nombre">MIGUEL ÁNGEL CASQUERO MARTÍNEZ</div><div class="titulo">LOGÍSTICA Y PRODUCCIÓN</div><div class="sub">JEFE DE TURNO · SUPERVISOR · GESTIÓN DE ALMACÉN</div><div class="intro">Profesional con más de 26 años de experiencia en logística, producción y gestión de almacén, principalmente en el sector de automoción. Trayectoria de promoción interna desde funciones operativas hasta puestos de encargado y jefe de turno/supervisor.</div></div></header>
 <main class="escena">
@@ -34,7 +198,7 @@ svg{position:absolute;inset:0;width:100%;height:100%;z-index:1;pointer-events:no
 <button class="card c9 p9" data-id="otros">OTROS DATOS</button>
 <button class="card c10 p10" data-id="aficiones">AFICIONES<br>E INTERESES</button>
 </main>
-<aside id="panel" class="panel"><button id="close" class="close">×</button><div id="pt" class="pt"></div><div id="pc" class="pc"></div><div class="contact"><b>CONTACTO</b><br>Laguna de Duero · Valladolid<br>https://www.linkedin.com/in/miguel-angel-casquero-martinez-b56163437/<br>macasquero1972@gmail.com</div></aside>
+<aside id="panel" class="panel"><button id="close" class="close">×</button><div id="pt" class="pt"></div><div id="pc" class="pc"></div><div class="contact"><b>CONTACTO</b><br>Laguna de Duero · Valladolid<br>645 874 186<br>macasquero1972@gmail.com</div></aside>
 <script>
 const D={"objetivo": {"titulo": "OBJETIVO PROFESIONAL", "contenido": "Aportar mi experiencia en logística, producción y coordinación de equipos en una nueva etapa profesional.\n\nInteresado especialmente en puestos de gestión de almacén, coordinación logística, planificación y apoyo administrativo en empresas industriales, de transporte o distribución, con oportunidades para seguir aprendiendo y asumir nuevas responsabilidades."}, "perfil": {"titulo": "PERFIL PROFESIONAL", "contenido": "Profesional con más de 26 años de experiencia en logística, producción y gestión de almacén, principalmente en el sector de automoción.\n\nTrayectoria de promoción interna desde funciones operativas hasta puestos de encargado y jefe de turno/supervisor, asumiendo progresivamente responsabilidades de coordinación de equipos, organización de turnos, planificación de la producción, gestión de pedidos, control de stock, calidad, seguridad y apoyo a tareas administrativas y económicas."}, "experiencia": {"titulo": "EXPERIENCIA LABORAL", "contenido": "LOGÍSTICA INTEGRAL PARDO | Valladolid\n\nJEFE DE TURNO / SUPERVISOR DE PRODUCCIÓN Y LOGÍSTICA | 2005 – Dic. 2025\n• Liderazgo y supervisión de aproximadamente 25 operarios.\n• Organización de turnos y cargas de trabajo.\n• Planificación diaria de producción.\n• Gestión y seguimiento de pedidos.\n• Control de stock e inventarios.\n• Coordinación de suministro y resolución de incidencias.\n• Calidad, seguridad y prevención.\n• SAP, CDM, herramientas internas y PDA.\n\nENCARGADO / COORDINADOR DE EQUIPO | 2001 – 2005\n• Coordinación operativa de equipos.\n• Distribución y seguimiento de tareas.\n• Seguimiento de pedidos, materiales y stock.\n• Gestión de incidencias y formación de nuevas incorporaciones.\n\nOPERARIO DE LOGÍSTICA / PRODUCCIÓN | Mar. 1999 – 2001\n• Recepción, preparación y movimiento de mercancías.\n• Preparación de pedidos y suministro a producción.\n• Manejo de carretillas elevadoras.\n\nBULL ESPAÑA\nPreparación y mantenimiento de soportes informáticos | Jun. 1998 – Oct. 1998"}, "formacion_academica": {"titulo": "FORMACIÓN ACADÉMICA", "contenido": "• FP II Informática de Gestión | 1993 – 1998\n• FP I Electricidad y Electrónica | 1986 – 1989"}, "formacion_complementaria": {"titulo": "FORMACIÓN COMPLEMENTARIA", "contenido": "CERTIFICADO DE PROFESIONALIDAD DE ORGANIZACIÓN DEL TRANSPORTE Y LA DISTRIBUCIÓN – NIVEL III | Julio 2026\n• 420 horas de formación.\n• Organización, gestión y control de la distribución capilar de mercancías y operaciones de transporte de larga distancia.\n• Optimización de la cadena logística.\n\nPrevención de Riesgos Laborales (PRL): INEM (SEPE), 30 horas.\n\nCurso de operador de carretilla elevadora: Carretillas Mayor, diciembre de 2023."}, "informatica": {"titulo": "INFORMÁTICA, OFIMÁTICA Y HERRAMIENTAS", "contenido": "• SAP: nivel usuario aplicado a logística, producción y control de operaciones.\n• PDA y terminales de almacén.\n• CDM y aplicaciones internas de gestión.\n• Cobol, RPG y UNIX: nivel básico.\n• Word, Excel y Outlook.\n• dBASE IV, Microsoft Access y Microsoft SQL Server: nivel usuario."}, "aptitudes": {"titulo": "APTITUDES", "contenido": "• Liderazgo y coordinación de equipos.\n• Organización de turnos y cargas de trabajo.\n• Gestión de almacén, existencias e inventarios.\n• Planificación de producción y pedidos.\n• Resolución de incidencias y orientación a resultados.\n• Control de calidad y seguridad.\n• Adaptación al cambio, disciplina, constancia y compromiso profesional."}, "idiomas": {"titulo": "IDIOMAS", "contenido": "• Español: nativo.\n• Inglés: nivel básico (A2 o equivalente)."}, "otros": {"titulo": "OTROS DATOS", "contenido": "• Carnet de carretillas elevadoras.\n• Carnet de conducir y vehículo propio.\n• Disponibilidad: incorporación inmediata.\n• Movilidad: Valladolid y alrededores.\n• Jornada y turnos: preferencia por horario fijo, con disposición a valorar otras opciones."}, "aficiones": {"titulo": "AFICIONES E INTERESES", "contenido": "• Artes marciales y defensa personal: cinturón negro, 1.º DAN de Goshin (2020).\n• Práctica continuada vinculada a disciplina, constancia y autocontrol."}};
 document.querySelectorAll(".card").forEach(c=>c.onclick=()=>{const d=D[c.dataset.id];document.getElementById("pt").textContent=d.titulo;document.getElementById("pc").textContent=d.contenido;document.getElementById("panel").classList.add("open")});
