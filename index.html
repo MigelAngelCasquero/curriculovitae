@@ -1,1 +1,627 @@
+<html>
+    <head>
+        <meta charset="utf-8">
+        
+            <script>function neighbourhoodHighlight(params) {
+  // console.log("in nieghbourhoodhighlight");
+  allNodes = nodes.get({ returnType: "Object" });
+  // originalNodes = JSON.parse(JSON.stringify(allNodes));
+  // if something is selected:
+  if (params.nodes.length > 0) {
+    highlightActive = true;
+    var i, j;
+    var selectedNode = params.nodes[0];
+    var degrees = 2;
 
+    // mark all nodes as hard to read.
+    for (let nodeId in allNodes) {
+      // nodeColors[nodeId] = allNodes[nodeId].color;
+      allNodes[nodeId].color = "rgba(200,200,200,0.5)";
+      if (allNodes[nodeId].hiddenLabel === undefined) {
+        allNodes[nodeId].hiddenLabel = allNodes[nodeId].label;
+        allNodes[nodeId].label = undefined;
+      }
+    }
+    var connectedNodes = network.getConnectedNodes(selectedNode);
+    var allConnectedNodes = [];
+
+    // get the second degree nodes
+    for (i = 1; i < degrees; i++) {
+      for (j = 0; j < connectedNodes.length; j++) {
+        allConnectedNodes = allConnectedNodes.concat(
+          network.getConnectedNodes(connectedNodes[j])
+        );
+      }
+    }
+
+    // all second degree nodes get a different color and their label back
+    for (i = 0; i < allConnectedNodes.length; i++) {
+      // allNodes[allConnectedNodes[i]].color = "pink";
+      allNodes[allConnectedNodes[i]].color = "rgba(150,150,150,0.75)";
+      if (allNodes[allConnectedNodes[i]].hiddenLabel !== undefined) {
+        allNodes[allConnectedNodes[i]].label =
+          allNodes[allConnectedNodes[i]].hiddenLabel;
+        allNodes[allConnectedNodes[i]].hiddenLabel = undefined;
+      }
+    }
+
+    // all first degree nodes get their own color and their label back
+    for (i = 0; i < connectedNodes.length; i++) {
+      // allNodes[connectedNodes[i]].color = undefined;
+      allNodes[connectedNodes[i]].color = nodeColors[connectedNodes[i]];
+      if (allNodes[connectedNodes[i]].hiddenLabel !== undefined) {
+        allNodes[connectedNodes[i]].label =
+          allNodes[connectedNodes[i]].hiddenLabel;
+        allNodes[connectedNodes[i]].hiddenLabel = undefined;
+      }
+    }
+
+    // the main node gets its own color and its label back.
+    // allNodes[selectedNode].color = undefined;
+    allNodes[selectedNode].color = nodeColors[selectedNode];
+    if (allNodes[selectedNode].hiddenLabel !== undefined) {
+      allNodes[selectedNode].label = allNodes[selectedNode].hiddenLabel;
+      allNodes[selectedNode].hiddenLabel = undefined;
+    }
+  } else if (highlightActive === true) {
+    // console.log("highlightActive was true");
+    // reset all nodes
+    for (let nodeId in allNodes) {
+      // allNodes[nodeId].color = "purple";
+      allNodes[nodeId].color = nodeColors[nodeId];
+      // delete allNodes[nodeId].color;
+      if (allNodes[nodeId].hiddenLabel !== undefined) {
+        allNodes[nodeId].label = allNodes[nodeId].hiddenLabel;
+        allNodes[nodeId].hiddenLabel = undefined;
+      }
+    }
+    highlightActive = false;
+  }
+
+  // transform the object into an array
+  var updateArray = [];
+  if (params.nodes.length > 0) {
+    for (let nodeId in allNodes) {
+      if (allNodes.hasOwnProperty(nodeId)) {
+        // console.log(allNodes[nodeId]);
+        updateArray.push(allNodes[nodeId]);
+      }
+    }
+    nodes.update(updateArray);
+  } else {
+    // console.log("Nothing was selected");
+    for (let nodeId in allNodes) {
+      if (allNodes.hasOwnProperty(nodeId)) {
+        // console.log(allNodes[nodeId]);
+        // allNodes[nodeId].color = {};
+        updateArray.push(allNodes[nodeId]);
+      }
+    }
+    nodes.update(updateArray);
+  }
+}
+
+function filterHighlight(params) {
+  allNodes = nodes.get({ returnType: "Object" });
+  // if something is selected:
+  if (params.nodes.length > 0) {
+    filterActive = true;
+    let selectedNodes = params.nodes;
+
+    // hiding all nodes and saving the label
+    for (let nodeId in allNodes) {
+      allNodes[nodeId].hidden = true;
+      if (allNodes[nodeId].savedLabel === undefined) {
+        allNodes[nodeId].savedLabel = allNodes[nodeId].label;
+        allNodes[nodeId].label = undefined;
+      }
+    }
+
+    for (let i=0; i < selectedNodes.length; i++) {
+      allNodes[selectedNodes[i]].hidden = false;
+      if (allNodes[selectedNodes[i]].savedLabel !== undefined) {
+        allNodes[selectedNodes[i]].label = allNodes[selectedNodes[i]].savedLabel;
+        allNodes[selectedNodes[i]].savedLabel = undefined;
+      }
+    }
+
+  } else if (filterActive === true) {
+    // reset all nodes
+    for (let nodeId in allNodes) {
+      allNodes[nodeId].hidden = false;
+      if (allNodes[nodeId].savedLabel !== undefined) {
+        allNodes[nodeId].label = allNodes[nodeId].savedLabel;
+        allNodes[nodeId].savedLabel = undefined;
+      }
+    }
+    filterActive = false;
+  }
+
+  // transform the object into an array
+  var updateArray = [];
+  if (params.nodes.length > 0) {
+    for (let nodeId in allNodes) {
+      if (allNodes.hasOwnProperty(nodeId)) {
+        updateArray.push(allNodes[nodeId]);
+      }
+    }
+    nodes.update(updateArray);
+  } else {
+    for (let nodeId in allNodes) {
+      if (allNodes.hasOwnProperty(nodeId)) {
+        updateArray.push(allNodes[nodeId]);
+      }
+    }
+    nodes.update(updateArray);
+  }
+}
+
+function selectNode(nodes) {
+  network.selectNodes(nodes);
+  neighbourhoodHighlight({ nodes: nodes });
+  return nodes;
+}
+
+function selectNodes(nodes) {
+  network.selectNodes(nodes);
+  filterHighlight({nodes: nodes});
+  return nodes;
+}
+
+function highlightFilter(filter) {
+  let selectedNodes = []
+  let selectedProp = filter['property']
+  if (filter['item'] === 'node') {
+    let allNodes = nodes.get({ returnType: "Object" });
+    for (let nodeId in allNodes) {
+      if (allNodes[nodeId][selectedProp] && filter['value'].includes((allNodes[nodeId][selectedProp]).toString())) {
+        selectedNodes.push(nodeId)
+      }
+    }
+  }
+  else if (filter['item'] === 'edge'){
+    let allEdges = edges.get({returnType: 'object'});
+    // check if the selected property exists for selected edge and select the nodes connected to the edge
+    for (let edge in allEdges) {
+      if (allEdges[edge][selectedProp] && filter['value'].includes((allEdges[edge][selectedProp]).toString())) {
+        selectedNodes.push(allEdges[edge]['from'])
+        selectedNodes.push(allEdges[edge]['to'])
+      }
+    }
+  }
+  selectNodes(selectedNodes)
+}</script>
+            <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/vis-network/9.1.2/dist/dist/vis-network.min.css" integrity="sha512-WgxfT5LWjfszlPHXRmBWHkV2eceiWTOBvrKCNbdgDYTHrT2AeLCGbF4sZlZw3UMN3WtL0tGUoIAKsu8mllg/XA==" crossorigin="anonymous" referrerpolicy="no-referrer" />
+            <script src="https://cdnjs.cloudflare.com/ajax/libs/vis-network/9.1.2/dist/vis-network.min.js" integrity="sha512-LnvoEWDFrqGHlHmDD2101OrLcbsfkrzoSpvtSQtxK3RMnRV0eOkhhBN2dXHKRrUU8p2DGRTk35n4O8nWSVe1mQ==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+            
+            
+            
+            
+            
+            
+
+        
+<center>
+<h1></h1>
+</center>
+
+<!-- <link rel="stylesheet" href="../node_modules/vis/dist/vis.min.css" type="text/css" />
+<script type="text/javascript" src="../node_modules/vis/dist/vis.js"> </script>-->
+        <link
+          href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.0-beta3/dist/css/bootstrap.min.css"
+          rel="stylesheet"
+          integrity="sha384-eOJMYsd53ii+scO/bJGFsiCZc+5NDVN2yr8+0RDqr0Ql0h+rP48ckxlpbzKgwra6"
+          crossorigin="anonymous"
+        />
+        <script
+          src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.0-beta3/dist/js/bootstrap.bundle.min.js"
+          integrity="sha384-JEW9xMcG8R+pH31jmWH6WWP0WintQrMb4s7ZOdauHnUtxwoG2vI5DkLtS3qm9Ekf"
+          crossorigin="anonymous"
+        ></script>
+
+
+        <center>
+          <h1></h1>
+        </center>
+        <style type="text/css">
+
+             #mynetwork {
+                 width: 100%;
+                 height: 100vh;
+                 background-color: #05090b;
+                 border: 1px solid lightgray;
+                 position: relative;
+                 float: left;
+             }
+
+             
+
+             
+
+             
+        </style>
+    
+<style>
+* { box-sizing: border-box; }
+
+html, body {
+    width:100%;
+    height:100%;
+    margin:0;
+    overflow:hidden;
+    font-family:"Segoe UI",Arial,sans-serif;
+}
+
+body {
+    background:
+        linear-gradient(
+            105deg,
+            rgba(0,0,0,.88),
+            rgba(4,12,15,.72),
+            rgba(0,0,0,.91)
+        ),
+        url("almacen.jpg");
+
+    background-size:cover;
+    background-position:center;
+}
+
+/* CABECERA */
+#cabeceraCV {
+    position:fixed;
+    top:18px;
+    left:28px;
+    right:28px;
+    height:170px;
+    z-index:10000;
+    display:flex;
+    align-items:flex-start;
+    color:white;
+    pointer-events:none;
+}
+
+#fotoMiguel {
+    width:128px;
+    height:128px;
+    flex:0 0 128px;
+    object-fit:cover;
+    object-position:center 20%;
+    border-radius:16px;
+    border:2px solid rgba(185,232,237,.75);
+    box-shadow:
+        0 18px 45px rgba(0,0,0,.70),
+        8px 9px 0 rgba(30,73,81,.38);
+}
+
+#datosCabecera {
+    margin-left:23px;
+}
+
+#cabeceraCV .nombre {
+    font-size:28px;
+    font-weight:300;
+    letter-spacing:5px;
+    color:rgba(255,255,255,.94);
+}
+
+#cabeceraCV .tituloProfesional {
+    margin-top:7px;
+    font-size:36px;
+    line-height:1;
+    font-weight:750;
+    letter-spacing:2px;
+    color:#fff;
+    text-shadow:0 5px 25px #000;
+}
+
+#cabeceraCV .tituloProfesional span {
+    display:block;
+    margin-top:9px;
+    color:#9debf1;
+    font-size:16px;
+    font-weight:650;
+    letter-spacing:2px;
+}
+
+#cabeceraCV .intro {
+    max-width:820px;
+    margin-top:12px;
+    color:rgba(255,255,255,.76);
+    font-size:13px;
+    line-height:1.45;
+}
+
+/* ZONA GRAFO */
+#mynetwork {
+    position:absolute !important;
+    left:0 !important;
+    top:180px !important;
+    width:100vw !important;
+    height:calc(100vh - 180px) !important;
+    border:none !important;
+    background:
+        radial-gradient(
+            ellipse at center,
+            rgba(35,85,93,.12) 0%,
+            rgba(0,0,0,.12) 42%,
+            rgba(0,0,0,.46) 100%
+        ) !important;
+}
+
+/* PANEL DETALLE */
+#panelDetalle {
+    position:fixed;
+    top:0;
+    right:0;
+    z-index:20000;
+    width:550px;
+    height:100vh;
+    padding:44px 42px 38px;
+    color:white;
+    background:
+        linear-gradient(
+            155deg,
+            rgba(11,30,36,.99),
+            rgba(2,7,9,.99)
+        );
+    border-left:1px solid rgba(157,235,241,.30);
+    box-shadow:-30px 0 75px rgba(0,0,0,.72);
+    transform:translateX(105%);
+    transition:transform .40s cubic-bezier(.22,.8,.32,1);
+    overflow-y:auto;
+}
+
+#panelDetalle.abierto {
+    transform:translateX(0);
+}
+
+#cerrarPanel {
+    position:absolute;
+    right:22px;
+    top:18px;
+    width:40px;
+    height:40px;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    color:white;
+    background:rgba(255,255,255,.07);
+    border:1px solid rgba(255,255,255,.15);
+    border-radius:50%;
+    font-size:21px;
+    cursor:pointer;
+}
+
+#panelTitulo {
+    margin-top:20px;
+    padding-right:35px;
+    padding-bottom:20px;
+    color:#9debf1;
+    font-size:30px;
+    line-height:1.15;
+    font-weight:700;
+    border-bottom:1px solid rgba(255,255,255,.13);
+}
+
+#panelContenido {
+    margin-top:24px;
+    color:rgba(255,255,255,.87);
+    font-size:14px;
+    line-height:1.7;
+    white-space:pre-line;
+}
+
+#contacto {
+    margin-top:30px;
+    padding:18px;
+    background:rgba(255,255,255,.045);
+    border:1px solid rgba(255,255,255,.10);
+    border-radius:13px;
+    color:rgba(255,255,255,.68);
+    font-size:12px;
+    line-height:1.8;
+}
+
+#contacto strong { color:#fff; }
+
+#ayuda {
+    position:fixed;
+    left:30px;
+    bottom:22px;
+    z-index:10000;
+    padding:10px 16px;
+    color:rgba(255,255,255,.65);
+    background:rgba(0,0,0,.72);
+    border:1px solid rgba(255,255,255,.13);
+    border-radius:11px;
+    font-size:10px;
+    letter-spacing:1.2px;
+    pointer-events:none;
+}
+
+#panelDetalle::-webkit-scrollbar { width:5px; }
+#panelDetalle::-webkit-scrollbar-thumb {
+    background:rgba(157,235,241,.30);
+    border-radius:5px;
+}
+</style>
+
+</head>
+
+
+    <body>
+
+<div id="cabeceraCV">
+    <img id="fotoMiguel" src="miguel.png" alt="Fotografía de Miguel">
+
+    <div id="datosCabecera">
+        <div class="nombre">MIGUEL ÁNGEL CASQUERO MARTÍNEZ</div>
+
+        <div class="tituloProfesional">
+            LOGÍSTICA Y PRODUCCIÓN
+            <span>JEFE DE TURNO · SUPERVISOR · GESTIÓN DE ALMACÉN</span>
+        </div>
+
+        <div class="intro">
+            Profesional con más de 26 años de experiencia en logística,
+            producción y gestión de almacén, principalmente en el sector
+            de automoción. Trayectoria de promoción interna desde funciones
+            operativas hasta puestos de encargado y jefe de turno/supervisor.
+        </div>
+    </div>
+</div>
+
+<div id="ayuda">
+    CLIC EN UNA SECCIÓN · ZOOM · ARRASTRA EL FONDO
+</div>
+
+<div id="panelDetalle">
+    <div id="cerrarPanel">×</div>
+    <div id="panelTitulo"></div>
+    <div id="panelContenido"></div>
+
+    <div id="contacto">
+        <strong>CONTACTO</strong><br>
+        Laguna de Duero · Valladolid<br>
+        645 874 186<br>
+        macasquero1972@gmail.com
+    </div>
+</div>
+
+        <div class="card" style="width: 100%">
+            
+            
+            <div id="mynetwork" class="card-body"></div>
+        </div>
+
+        
+        
+
+        <script type="text/javascript">
+
+              // initialize global variables.
+              var edges;
+              var nodes;
+              var allNodes;
+              var allEdges;
+              var nodeColors;
+              var originalNodes;
+              var network;
+              var container;
+              var options, data;
+              var filter = {
+                  item : '',
+                  property : '',
+                  value : []
+              };
+
+              
+
+              
+
+              // This method is responsible for drawing the graph, returns the drawn network
+              function drawGraph() {
+                  var container = document.getElementById('mynetwork');
+
+                  
+
+                  // parsing and collecting nodes and edges from the python
+                  nodes = new vis.DataSet([{"borderWidth": 2, "borderWidthSelected": 5, "color": {"background": "#203d46", "border": "#b9e8ed", "highlight": {"background": "#203d46", "border": "#70f2ff"}, "hover": {"background": "#203d46", "border": "#ffffff"}}, "fixed": {"x": true, "y": true}, "font": {"color": "white"}, "heightConstraint": {"minimum": 125}, "id": "objetivo", "label": "OBJETIVO\nPROFESIONAL", "margin": {"bottom": 18, "left": 18, "right": 18, "top": 18}, "physics": false, "shadow": {"color": "rgba(0,0,0,.90)", "enabled": true, "size": 30, "x": 14, "y": 18}, "shape": "box", "title": "OBJETIVO PROFESIONAL\n\nHaz clic para abrir", "widthConstraint": {"maximum": 300, "minimum": 285}, "x": -790, "y": -245}, {"borderWidth": 2, "borderWidthSelected": 5, "color": {"background": "#2a515c", "border": "#b9e8ed", "highlight": {"background": "#2a515c", "border": "#70f2ff"}, "hover": {"background": "#2a515c", "border": "#ffffff"}}, "fixed": {"x": true, "y": true}, "font": {"color": "white"}, "heightConstraint": {"minimum": 125}, "id": "perfil", "label": "PERFIL\nPROFESIONAL", "margin": {"bottom": 18, "left": 18, "right": 18, "top": 18}, "physics": false, "shadow": {"color": "rgba(0,0,0,.90)", "enabled": true, "size": 30, "x": 14, "y": 18}, "shape": "box", "title": "PERFIL PROFESIONAL\n\nHaz clic para abrir", "widthConstraint": {"maximum": 300, "minimum": 285}, "x": -405, "y": -285}, {"borderWidth": 2, "borderWidthSelected": 5, "color": {"background": "#087482", "border": "#b9e8ed", "highlight": {"background": "#087482", "border": "#70f2ff"}, "hover": {"background": "#087482", "border": "#ffffff"}}, "fixed": {"x": true, "y": true}, "font": {"color": "white"}, "heightConstraint": {"minimum": 125}, "id": "experiencia", "label": "EXPERIENCIA\nLABORAL", "margin": {"bottom": 18, "left": 18, "right": 18, "top": 18}, "physics": false, "shadow": {"color": "rgba(0,0,0,.90)", "enabled": true, "size": 30, "x": 14, "y": 18}, "shape": "box", "title": "EXPERIENCIA LABORAL\n\nHaz clic para abrir", "widthConstraint": {"maximum": 300, "minimum": 285}, "x": 0, "y": -305}, {"borderWidth": 2, "borderWidthSelected": 5, "color": {"background": "#73572e", "border": "#b9e8ed", "highlight": {"background": "#73572e", "border": "#70f2ff"}, "hover": {"background": "#73572e", "border": "#ffffff"}}, "fixed": {"x": true, "y": true}, "font": {"color": "white"}, "heightConstraint": {"minimum": 125}, "id": "formacion_academica", "label": "FORMACI\u00d3N\nACAD\u00c9MICA", "margin": {"bottom": 18, "left": 18, "right": 18, "top": 18}, "physics": false, "shadow": {"color": "rgba(0,0,0,.90)", "enabled": true, "size": 30, "x": 14, "y": 18}, "shape": "box", "title": "FORMACI\u00d3N ACAD\u00c9MICA\n\nHaz clic para abrir", "widthConstraint": {"maximum": 300, "minimum": 285}, "x": 405, "y": -285}, {"borderWidth": 2, "borderWidthSelected": 5, "color": {"background": "#89631f", "border": "#b9e8ed", "highlight": {"background": "#89631f", "border": "#70f2ff"}, "hover": {"background": "#89631f", "border": "#ffffff"}}, "fixed": {"x": true, "y": true}, "font": {"color": "white"}, "heightConstraint": {"minimum": 125}, "id": "formacion_complementaria", "label": "FORMACI\u00d3N\nCOMPLEMENTARIA", "margin": {"bottom": 18, "left": 18, "right": 18, "top": 18}, "physics": false, "shadow": {"color": "rgba(0,0,0,.90)", "enabled": true, "size": 30, "x": 14, "y": 18}, "shape": "box", "title": "FORMACI\u00d3N COMPLEMENTARIA\n\nHaz clic para abrir", "widthConstraint": {"maximum": 300, "minimum": 285}, "x": 790, "y": -245}, {"borderWidth": 2, "borderWidthSelected": 5, "color": {"background": "#24577a", "border": "#b9e8ed", "highlight": {"background": "#24577a", "border": "#70f2ff"}, "hover": {"background": "#24577a", "border": "#ffffff"}}, "fixed": {"x": true, "y": true}, "font": {"color": "white"}, "heightConstraint": {"minimum": 125}, "id": "informatica", "label": "INFORM\u00c1TICA, OFIM\u00c1TICA\nY HERRAMIENTAS", "margin": {"bottom": 18, "left": 18, "right": 18, "top": 18}, "physics": false, "shadow": {"color": "rgba(0,0,0,.90)", "enabled": true, "size": 30, "x": 14, "y": 18}, "shape": "box", "title": "INFORM\u00c1TICA, OFIM\u00c1TICA Y HERRAMIENTAS\n\nHaz clic para abrir", "widthConstraint": {"maximum": 300, "minimum": 285}, "x": -790, "y": 245}, {"borderWidth": 2, "borderWidthSelected": 5, "color": {"background": "#67436f", "border": "#b9e8ed", "highlight": {"background": "#67436f", "border": "#70f2ff"}, "hover": {"background": "#67436f", "border": "#ffffff"}}, "fixed": {"x": true, "y": true}, "font": {"color": "white"}, "heightConstraint": {"minimum": 125}, "id": "aptitudes", "label": "APTITUDES", "margin": {"bottom": 18, "left": 18, "right": 18, "top": 18}, "physics": false, "shadow": {"color": "rgba(0,0,0,.90)", "enabled": true, "size": 30, "x": 14, "y": 18}, "shape": "box", "title": "APTITUDES\n\nHaz clic para abrir", "widthConstraint": {"maximum": 300, "minimum": 285}, "x": -405, "y": 285}, {"borderWidth": 2, "borderWidthSelected": 5, "color": {"background": "#355965", "border": "#b9e8ed", "highlight": {"background": "#355965", "border": "#70f2ff"}, "hover": {"background": "#355965", "border": "#ffffff"}}, "fixed": {"x": true, "y": true}, "font": {"color": "white"}, "heightConstraint": {"minimum": 125}, "id": "idiomas", "label": "IDIOMAS", "margin": {"bottom": 18, "left": 18, "right": 18, "top": 18}, "physics": false, "shadow": {"color": "rgba(0,0,0,.90)", "enabled": true, "size": 30, "x": 14, "y": 18}, "shape": "box", "title": "IDIOMAS\n\nHaz clic para abrir", "widthConstraint": {"maximum": 300, "minimum": 285}, "x": 0, "y": 305}, {"borderWidth": 2, "borderWidthSelected": 5, "color": {"background": "#4c5f62", "border": "#b9e8ed", "highlight": {"background": "#4c5f62", "border": "#70f2ff"}, "hover": {"background": "#4c5f62", "border": "#ffffff"}}, "fixed": {"x": true, "y": true}, "font": {"color": "white"}, "heightConstraint": {"minimum": 125}, "id": "otros", "label": "OTROS DATOS", "margin": {"bottom": 18, "left": 18, "right": 18, "top": 18}, "physics": false, "shadow": {"color": "rgba(0,0,0,.90)", "enabled": true, "size": 30, "x": 14, "y": 18}, "shape": "box", "title": "OTROS DATOS\n\nHaz clic para abrir", "widthConstraint": {"maximum": 300, "minimum": 285}, "x": 405, "y": 285}, {"borderWidth": 2, "borderWidthSelected": 5, "color": {"background": "#59456b", "border": "#b9e8ed", "highlight": {"background": "#59456b", "border": "#70f2ff"}, "hover": {"background": "#59456b", "border": "#ffffff"}}, "fixed": {"x": true, "y": true}, "font": {"color": "white"}, "heightConstraint": {"minimum": 125}, "id": "aficiones", "label": "AFICIONES\nE INTERESES", "margin": {"bottom": 18, "left": 18, "right": 18, "top": 18}, "physics": false, "shadow": {"color": "rgba(0,0,0,.90)", "enabled": true, "size": 30, "x": 14, "y": 18}, "shape": "box", "title": "AFICIONES E INTERESES\n\nHaz clic para abrir", "widthConstraint": {"maximum": 300, "minimum": 285}, "x": 790, "y": 245}]);
+                  edges = new vis.DataSet([{"color": {"color": "#8ad7df", "highlight": "#ffffff", "hover": "#bdfaff", "opacity": 0.42}, "from": "objetivo", "hoverWidth": 1.5, "physics": false, "selectionWidth": 1.5, "smooth": false, "to": "perfil", "width": 2.2}, {"color": {"color": "#8ad7df", "highlight": "#ffffff", "hover": "#bdfaff", "opacity": 0.42}, "from": "perfil", "hoverWidth": 1.5, "physics": false, "selectionWidth": 1.5, "smooth": false, "to": "experiencia", "width": 2.2}, {"color": {"color": "#8ad7df", "highlight": "#ffffff", "hover": "#bdfaff", "opacity": 0.42}, "from": "experiencia", "hoverWidth": 1.5, "physics": false, "selectionWidth": 1.5, "smooth": false, "to": "formacion_academica", "width": 2.2}, {"color": {"color": "#8ad7df", "highlight": "#ffffff", "hover": "#bdfaff", "opacity": 0.42}, "from": "formacion_academica", "hoverWidth": 1.5, "physics": false, "selectionWidth": 1.5, "smooth": false, "to": "formacion_complementaria", "width": 2.2}, {"color": {"color": "#8ad7df", "highlight": "#ffffff", "hover": "#bdfaff", "opacity": 0.42}, "from": "informatica", "hoverWidth": 1.5, "physics": false, "selectionWidth": 1.5, "smooth": false, "to": "aptitudes", "width": 2.2}, {"color": {"color": "#8ad7df", "highlight": "#ffffff", "hover": "#bdfaff", "opacity": 0.42}, "from": "aptitudes", "hoverWidth": 1.5, "physics": false, "selectionWidth": 1.5, "smooth": false, "to": "idiomas", "width": 2.2}, {"color": {"color": "#8ad7df", "highlight": "#ffffff", "hover": "#bdfaff", "opacity": 0.42}, "from": "idiomas", "hoverWidth": 1.5, "physics": false, "selectionWidth": 1.5, "smooth": false, "to": "otros", "width": 2.2}, {"color": {"color": "#8ad7df", "highlight": "#ffffff", "hover": "#bdfaff", "opacity": 0.42}, "from": "otros", "hoverWidth": 1.5, "physics": false, "selectionWidth": 1.5, "smooth": false, "to": "aficiones", "width": 2.2}, {"color": {"color": "#8ad7df", "highlight": "#ffffff", "hover": "#bdfaff", "opacity": 0.52}, "from": "objetivo", "hoverWidth": 1.5, "physics": false, "selectionWidth": 1.5, "smooth": false, "to": "informatica", "width": 2.5}, {"color": {"color": "#8ad7df", "highlight": "#ffffff", "hover": "#bdfaff", "opacity": 0.52}, "from": "formacion_complementaria", "hoverWidth": 1.5, "physics": false, "selectionWidth": 1.5, "smooth": false, "to": "aficiones", "width": 2.5}, {"color": {"color": "#8ad7df", "highlight": "#ffffff", "hover": "#bdfaff", "opacity": 0.34}, "from": "objetivo", "hoverWidth": 1.5, "physics": false, "selectionWidth": 1.5, "smooth": false, "to": "aficiones", "width": 2.8}, {"color": {"color": "#8ad7df", "highlight": "#ffffff", "hover": "#bdfaff", "opacity": 0.34}, "from": "informatica", "hoverWidth": 1.5, "physics": false, "selectionWidth": 1.5, "smooth": false, "to": "formacion_complementaria", "width": 2.8}]);
+
+                  nodeColors = {};
+                  allNodes = nodes.get({ returnType: "Object" });
+                  for (nodeId in allNodes) {
+                    nodeColors[nodeId] = allNodes[nodeId].color;
+                  }
+                  allEdges = edges.get({ returnType: "Object" });
+                  // adding nodes and edges to the graph
+                  data = {nodes: nodes, edges: edges};
+
+                  var options = {"physics": {"enabled": false}, "interaction": {"hover": true, "tooltipDelay": 120, "keyboard": true, "zoomView": true, "dragView": true, "dragNodes": false}, "edges": {"smooth": false}};
+
+                  
+
+
+                  
+
+                  network = new vis.Network(container, data, options);
+
+                  
+
+                  
+
+                  
+
+
+                  
+
+                  return network;
+
+              }
+              drawGraph();
+        </script>
+    
+<script>
+const detallesCV = {"objetivo": {"titulo": "OBJETIVO PROFESIONAL", "contenido": "Aportar mi experiencia en logística, producción y coordinación de equipos en una nueva etapa profesional.\n\nInteresado especialmente en puestos de gestión de almacén, coordinación logística, planificación y apoyo administrativo en empresas industriales, de transporte o distribución, con oportunidades para seguir aprendiendo y asumir nuevas responsabilidades."}, "perfil": {"titulo": "PERFIL PROFESIONAL", "contenido": "Profesional con más de 26 años de experiencia en logística, producción y gestión de almacén, principalmente en el sector de automoción.\n\nTrayectoria de promoción interna desde funciones operativas hasta puestos de encargado y jefe de turno/supervisor, asumiendo progresivamente responsabilidades de coordinación de equipos, organización de turnos, planificación de la producción, gestión de pedidos, control de stock, calidad, seguridad y apoyo a tareas administrativas y económicas.\n\nAcostumbrado a trabajar por objetivos, resolver incidencias y coordinar equipos en entornos industriales."}, "experiencia": {"titulo": "EXPERIENCIA LABORAL", "contenido": "LOGÍSTICA INTEGRAL PARDO | Valladolid\n\nJEFE DE TURNO / SUPERVISOR DE PRODUCCIÓN Y LOGÍSTICA | 2005 – Dic. 2025\n• Liderazgo, coordinación y supervisión directa de un equipo de aproximadamente 25 operarios.\n• Organización de turnos, distribución de cargas de trabajo y asignación de personal a los diferentes puestos.\n• Planificación y coordinación diaria de la producción.\n• Preparación, gestión y seguimiento de pedidos.\n• Control de stock, movimientos de materiales e inventarios.\n• Coordinación del suministro de materiales a producción y resolución de incidencias operativas.\n• Seguimiento de procedimientos vinculados a clientes del sector de automoción, entre ellos Renault, Citroën y Volkswagen.\n• Control de calidad y procedimientos de seguridad y prevención.\n• Supervisión de maquinaria y coordinación de necesidades de mantenimiento.\n• Uso de SAP, CDM, herramientas internas y PDA.\n\nENCARGADO / COORDINADOR DE EQUIPO | 2001 – 2005\n• Coordinación operativa de equipos y apoyo al responsable de turno.\n• Distribución y seguimiento de tareas, puestos y cargas de trabajo.\n• Seguimiento de pedidos, materiales, stock y objetivos diarios.\n• Gestión de incidencias.\n• Apoyo en calidad y seguridad.\n• Formación práctica de nuevas incorporaciones.\n\nOPERARIO DE LOGÍSTICA / PRODUCCIÓN | Mar. 1999 – 2001\n• Recepción, preparación, ubicación y movimiento de mercancías y materiales.\n• Preparación de pedidos y suministro a producción.\n• Manejo de carretillas elevadoras.\n• Registro mediante herramientas informáticas y dispositivos de almacén.\n\nBULL ESPAÑA\nPreparación y mantenimiento de soportes informáticos | Jun. 1998 – Oct. 1998"}, "formacion_academica": {"titulo": "FORMACIÓN ACADÉMICA", "contenido": "• FP II Informática de Gestión | 1993 – 1998\n• FP I Electricidad y Electrónica | 1986 – 1989"}, "formacion_complementaria": {"titulo": "FORMACIÓN COMPLEMENTARIA", "contenido": "CERTIFICADO DE PROFESIONALIDAD DE ORGANIZACIÓN DEL TRANSPORTE Y LA DISTRIBUCIÓN – NIVEL III | Julio 2026\n• 420 horas de formación.\n• Organización, gestión y control de la distribución capilar de mercancías y de las operaciones de transporte de larga distancia.\n• Optimización de la cadena logística.\n\nPrevención de Riesgos Laborales (PRL): INEM (SEPE), 30 horas.\n\nCurso de operador de carretilla elevadora: Carretillas Mayor, diciembre de 2023."}, "informatica": {"titulo": "INFORMÁTICA, OFIMÁTICA Y HERRAMIENTAS", "contenido": "• SAP: manejo a nivel de usuario aplicado a logística, producción y control de operaciones.\n• PDA y terminales de almacén.\n• CDM y aplicaciones internas de gestión.\n• Informática de gestión: Cobol, RPG, UNIX, nivel básico.\n• Ofimática: Word, Excel, Outlook y otras herramientas.\n• Bases de datos: dBASE IV, Microsoft Access y Microsoft SQL Server (nivel usuario)."}, "aptitudes": {"titulo": "APTITUDES", "contenido": "• Liderazgo y coordinación de equipos.\n• Organización de turnos y distribución de cargas de trabajo.\n• Gestión de almacén, existencias e inventarios.\n• Planificación y seguimiento de producción y pedidos.\n• Resolución de incidencias y orientación a resultados.\n• Control de calidad y seguridad.\n• Manejo de herramientas informáticas aplicadas a logística.\n• Adaptación al cambio y disposición para aprender.\n• Disciplina, constancia y compromiso profesional."}, "idiomas": {"titulo": "IDIOMAS", "contenido": "• Español: nativo.\n• Inglés: nivel básico (A2 o equivalente)."}, "otros": {"titulo": "OTROS DATOS", "contenido": "• Carnet de carretillas elevadoras.\n• Carnet de conducir y vehículo propio.\n• Disponibilidad: incorporación inmediata.\n• Movilidad: Valladolid y alrededores.\n• Jornada y turnos: preferencia por horario fijo, con disposición a valorar otras opciones."}, "aficiones": {"titulo": "AFICIONES E INTERESES", "contenido": "• Artes marciales y defensa personal: cinturón negro, 1.º DAN de Goshin (2020).\n• Práctica continuada de artes marciales, vinculada al mantenimiento de una buena forma física y al desarrollo de disciplina, constancia y autocontrol."}};
+
+function abrirPanel(id) {
+    const dato = detallesCV[id];
+    if (!dato) return;
+
+    document.getElementById("panelTitulo").textContent = dato.titulo;
+    document.getElementById("panelContenido").textContent = dato.contenido.trim();
+    document.getElementById("panelDetalle").classList.add("abierto");
+}
+
+function cerrarPanel() {
+    document.getElementById("panelDetalle").classList.remove("abierto");
+}
+
+document.getElementById("cerrarPanel").addEventListener("click", cerrarPanel);
+
+function conectarEventos() {
+    if (typeof network === "undefined") {
+        setTimeout(conectarEventos,100);
+        return;
+    }
+
+    // NO usar network.fit(): PyVis reduciría automáticamente todo el dibujo
+    // para encajarlo y la letra volvería a parecer pequeña.
+    // Fijamos nosotros el zoom inicial para conservar el tamaño visual.
+    network.moveTo({
+        position: {x: 0, y: 0},
+        scale: 0.92,
+        animation: {
+            duration: 450,
+            easingFunction: "easeInOutQuad"
+        }
+    });
+
+    network.on("click", function(params) {
+        if (params.nodes.length === 0) return;
+
+        const id = params.nodes[0];
+
+        if (!detallesCV[id]) return;
+
+        abrirPanel(id);
+        network.selectNodes([id]);
+    });
+
+    network.on("hoverNode", function(params) {
+        if (detallesCV[params.node]) {
+            document.body.style.cursor="pointer";
+        }
+    });
+
+    network.on("blurNode", function() {
+        document.body.style.cursor="default";
+    });
+}
+
+conectarEventos();
+</script>
+
+</body>
+</html>
